@@ -1,0 +1,106 @@
+/* Global Resets */
+body {
+    margin: 0;
+    font-family: var(--font-family);
+    background-color: var(--c-bg-body);
+    color: var(--c-text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* Typography Utilities */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    font-weight: 600;
+    color: var(--c-text-primary);
+}
+
+p {
+    margin: 0 0 1em;
+}
+
+a {
+    color: var(--c-primary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--c-primary-dark);
+}
+
+/* Element Plus Overrides */
+:root {
+    --el-color-primary: var(--c-primary);
+    --el-color-primary-light-3: var(--c-primary-light);
+    --el-color-primary-dark-2: var(--c-primary-dark);
+    --el-color-success: var(--c-success);
+    --el-color-warning: var(--c-warning);
+    --el-color-danger: var(--c-danger);
+    --el-color-info: var(--c-info);
+    --el-text-color-primary: var(--c-text-primary);
+    --el-text-color-regular: var(--c-text-secondary);
+    --el-bg-color: var(--c-bg-card);
+    --el-border-color: var(--c-border);
+    --el-border-radius-base: var(--radius-md);
+}
+
+.el-button {
+    font-weight: 500;
+    border-radius: var(--radius-md);
+}
+
+.el-card {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--c-border-light);
+    box-shadow: var(--shadow-sm) !important;
+    transition: box-shadow var(--transition-normal), transform var(--transition-fast);
+}
+
+.el-card:hover {
+    box-shadow: var(--shadow-md) !important;
+}
+
+/* Utility Classes */
+.text-primary {
+    color: var(--c-primary);
+}
+
+.text-secondary {
+    color: var(--c-text-secondary);
+}
+
+.text-sm {
+    font-size: var(--font-size-sm);
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-container {
+    padding: var(--space-lg);
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: var(--space-md);
+    }
+}

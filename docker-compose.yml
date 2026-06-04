@@ -1,0 +1,59 @@
+services:
+  db:
+    image: oscarfonts/h2:2.2.224
+    container_name: wordmind-db
+    ports:
+      - "9139:9092"
+    environment:
+      - H2_OPTIONS=-tcp -tcpAllowOthers -tcpPort 9092 -baseDir /opt/h2-data -ifNotExists
+    volumes:
+      - h2-data:/opt/h2-data
+    networks:
+      - wordmind-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wordmind-backend
+    ports:
+      - "8139:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:h2:tcp://db:9092/./wordmind;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - JWT_SECRET=this-is-a-very-long-secret-key-for-wordmind-jwt-token-generation-must-be-at-least-512-bits-long-for-hs512
+      - JWT_EXPIRATION=86400000
+    depends_on:
+      - db
+    networks:
+      - wordmind-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wordmind-frontend
+    ports:
+      - "3139:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8139
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - wordmind-network
+
+volumes:
+  h2-data:
+
+networks:
+  wordmind-network:
+    driver: bridge
