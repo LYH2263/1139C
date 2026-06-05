@@ -5,10 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mock": "VITE_USE_MOCK=true vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "api:types": "openapi-typescript http://localhost:8080/v3/api-docs -o src/types/api.d.ts",
+    "api:types:local": "openapi-typescript ./openapi.json -o src/types/api.d.ts",
+    "api:fetch": "curl http://localhost:8080/v3/api-docs -o openapi.json",
+    "api:check": "node scripts/api-diff.js",
+    "api:save": "cp openapi.json openapi-prev.json 2>/dev/null || echo 'No previous spec found'"
   },
   "dependencies": {
     "vue": "^3.4.15",
@@ -21,11 +27,19 @@
     "vue-echarts": "^6.6.1"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.0",
+    "@types/node": "^20.11.0",
     "@vitejs/plugin-vue": "^5.0.3",
     "@vue/test-utils": "^2.4.3",
     "jsdom": "^23.2.0",
+    "msw": "^2.1.5",
+    "openapi-diff": "^0.23.5",
+    "openapi-typescript": "^6.7.4",
     "typescript": "^5.3.3",
     "vite": "^5.0.11",
     "vitest": "^1.2.0"
+  },
+  "msw": {
+    "workerDirectory": "public"
   }
 }

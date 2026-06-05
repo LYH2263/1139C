@@ -1,122 +1,40 @@
-export interface ApiResponse<T> {
+import type { components, paths } from './api'
+
+export type ApiPaths = paths
+
+export type Schemas = components['schemas']
+
+export type ApiResponse<T = unknown> = {
   code: number
   message: string
   data: T
   traceId?: string
 }
 
-export interface UserInfo {
-  id: number
-  username: string
-  email?: string
-  role: string
-}
+export type UserInfo = Schemas['UserInfo']
+export type RegisterRequest = Schemas['RegisterRequest']
+export type RegisterResponse = Schemas['RegisterResponse']
+export type LoginRequest = Schemas['LoginRequest']
+export type LoginResponse = Schemas['LoginResponse']
+export type Word = Schemas['WordResponse']
+export type WordCreateRequest = Schemas['CreateWordRequest']
+export type WordUpdateRequest = Schemas['UpdateWordRequest']
+export type WordListResponse = Schemas['WordListResponse']
+export type MindMapNode = Schemas['WordNode']
+export type MindMapEdge = Schemas['RelationEdge']
+export type MindMapResponse = Schemas['MindMapResponse']
+export type RelationRequest = Schemas['RelationRequest']
+export type SubmitReviewRequest = Schemas['SubmitReviewRequest']
+export type ReviewRecord = Schemas['ReviewResponse']
+export type TodayReviewResponse = Schemas['TodayResponse']
+export type QuizQuestion = Schemas['Question']
+export type QuizAnswer = Schemas['Answer']
+export type QuizStartResponse = Schemas['StartResponse']
+export type QuizSubmitRequest = Schemas['SubmitQuizRequest']
+export type QuizSubmitResponse = Schemas['SubmitResponse']
+export type StatsResponse = Schemas['StatsResponse']
+export type CreateStudyPlanRequest = Schemas['CreateStudyPlanRequest']
+export type StudyPlan = Schemas['StudyPlanResponse']
+export type ImportResult = Schemas['ImportResult']
 
-export interface LoginRequest {
-  username: string
-  password: string
-}
-
-export interface LoginResponse {
-  token: string
-  user: UserInfo
-}
-
-export interface RegisterRequest {
-  username: string
-  password: string
-  email?: string
-}
-
-export interface Word {
-  id: number
-  word: string
-  phonetic?: string
-  pos?: string
-  meaning: string
-  example?: string
-  memoryTip?: string
-  createdAt?: string
-}
-
-export interface WordListResponse {
-  list: Word[]
-  total: number
-  page: number
-  size: number
-}
-
-export interface MindMapNode {
-  id: number
-  word: string
-  meaning: string
-  category?: string
-  depth: number
-}
-
-export interface MindMapEdge {
-  source: number
-  target: number
-  relationType: string
-  label: string
-}
-
-export interface MindMapResponse {
-  centerWord: MindMapNode
-  nodes: MindMapNode[]
-  edges: MindMapEdge[]
-}
-
-export interface ReviewRecord {
-  id: number
-  wordId: number
-  word: string
-  meaning: string
-  result: string
-  proficiency: number
-  nextReviewAt?: string
-  createdAt?: string
-}
-
-export interface TodayReviewResponse {
-  list: ReviewRecord[]
-  total: number
-}
-
-export interface QuizQuestion {
-  wordId: number
-  word: string
-  type: string
-  question: string
-  options: string[]
-  correctAnswer: string
-}
-
-export interface QuizStartResponse {
-  quizId: string
-  questions: QuizQuestion[]
-}
-
-export interface QuizSubmitResponse {
-  score: number
-  correctCount: number
-  totalCount: number
-  duration: number
-  wrongWords: Word[]
-}
-
-export interface StatsResponse {
-  totalWords: number
-  todayReviewCount: number
-  accuracy: number
-  streakDays: number
-}
-
-export interface StudyPlan {
-  id: number
-  wordId: number
-  word: string
-  meaning: string
-  planType: string
-  createdAt: string
-}
+export * from './api'

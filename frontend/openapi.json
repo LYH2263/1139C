@@ -1,0 +1,1316 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "WordMind API",
+    "description": "单词记忆与思维导图学习平台 API 文档",
+    "version": "1.0.0",
+    "contact": {
+      "name": "WordMind Team",
+      "email": "support@wordmind.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local development server"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "用户注册",
+        "description": "创建新用户账号",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "注册成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRegisterResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "用户登录",
+        "description": "使用用户名和密码登录获取 JWT Token",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "获取当前用户信息",
+        "description": "根据 JWT Token 获取当前登录用户信息",
+        "operationId": "getCurrentUser",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/words": {
+      "get": {
+        "tags": ["Words"],
+        "summary": "获取单词列表",
+        "description": "分页查询单词列表，支持关键词搜索和词性过滤",
+        "operationId": "getWords",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "搜索关键词（单词或释义）",
+            "schema": { "type": "string", "example": "ephem" }
+          },
+          {
+            "name": "pos",
+            "in": "query",
+            "description": "词性过滤",
+            "schema": { "type": "string", "example": "adj." }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "schema": { "type": "integer", "default": 1, "example": 1 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "每页大小",
+            "schema": { "type": "integer", "default": 20, "example": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseWordListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/words/{id}": {
+      "get": {
+        "tags": ["Words"],
+        "summary": "获取单词详情",
+        "description": "根据 ID 获取单词详情",
+        "operationId": "getWordById",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "单词 ID",
+            "schema": { "type": "integer", "example": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseWordResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/mindmap/{wordId}": {
+      "get": {
+        "tags": ["MindMap"],
+        "summary": "获取思维导图",
+        "description": "获取指定单词的思维导图，包含关联单词和关系边",
+        "operationId": "getMindMap",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "wordId",
+            "in": "path",
+            "required": true,
+            "description": "中心单词 ID",
+            "schema": { "type": "integer", "example": 1 }
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "description": "遍历深度",
+            "schema": { "type": "integer", "default": 1, "example": 2 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMindMapResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/reviews/today": {
+      "get": {
+        "tags": ["Review"],
+        "summary": "获取今日复习列表",
+        "description": "获取当前用户今日需要复习的单词列表",
+        "operationId": "getTodayReviews",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTodayResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/reviews/submit": {
+      "post": {
+        "tags": ["Review"],
+        "summary": "提交复习结果",
+        "description": "提交单词复习结果，更新熟练度和下次复习时间",
+        "operationId": "submitReview",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseReviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/quiz/start": {
+      "post": {
+        "tags": ["Quiz"],
+        "summary": "开始测验",
+        "description": "开始新的单词测验，生成指定数量的题目",
+        "operationId": "startQuiz",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "description": "题目数量",
+            "schema": { "type": "integer", "default": 10, "example": 10 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseStartResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/quiz/submit": {
+      "post": {
+        "tags": ["Quiz"],
+        "summary": "提交测验答案",
+        "description": "提交测验答案并获取评分结果",
+        "operationId": "submitQuiz",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitQuizRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/stats/me": {
+      "get": {
+        "tags": ["Stats"],
+        "summary": "获取学习统计",
+        "description": "获取当前用户的学习统计数据",
+        "operationId": "getMyStats",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseStatsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/study-plans": {
+      "post": {
+        "tags": ["Stats"],
+        "summary": "创建学习计划",
+        "description": "为单词创建学习计划",
+        "operationId": "createStudyPlan",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStudyPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseStudyPlanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/study-records": {
+      "get": {
+        "tags": ["Stats"],
+        "summary": "获取学习记录",
+        "description": "获取当前用户的学习计划列表",
+        "operationId": "getStudyRecords",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListStudyPlanResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "健康检查",
+        "description": "检查服务运行状态",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "服务正常",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMapStringObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/words": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "创建单词",
+        "description": "管理员创建新单词",
+        "operationId": "createWord",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseWordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/words/{id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "更新单词",
+        "description": "管理员更新单词信息",
+        "operationId": "updateWord",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "单词 ID",
+            "schema": { "type": "integer", "example": 1 }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseWordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "删除单词",
+        "description": "管理员删除单词",
+        "operationId": "deleteWord",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "单词 ID",
+            "schema": { "type": "integer", "example": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/admin/words/import": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "批量导入单词",
+        "description": "管理员通过 CSV 文件批量导入单词",
+        "operationId": "importWords",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "CSV 文件，格式：word,meaning,example"
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/relations": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "创建单词关系",
+        "description": "管理员创建两个单词之间的关系",
+        "operationId": "createRelation",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RelationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRelationEdge"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/admin/relations/{id}": {
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "删除单词关系",
+        "description": "管理员删除单词关系",
+        "operationId": "deleteRelation",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "关系 ID",
+            "schema": { "type": "integer", "example": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT 认证：在 Authorization header 中填入 Bearer {token}"
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "未授权 - 需要有效的 JWT Token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponseVoid"
+            },
+            "example": {
+              "code": 401,
+              "message": "未提供有效的认证令牌",
+              "data": null,
+              "traceId": "abc123xyz"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "禁止访问 - 权限不足",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponseVoid"
+            },
+            "example": {
+              "code": 403,
+              "message": "没有权限执行此操作",
+              "data": null,
+              "traceId": "abc123xyz"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "资源不存在",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponseVoid"
+            },
+            "example": {
+              "code": 404,
+              "message": "请求的资源不存在",
+              "data": null,
+              "traceId": "abc123xyz"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "请求参数错误",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponseVoid"
+            },
+            "example": {
+              "code": 400,
+              "message": "请求参数验证失败",
+              "data": null,
+              "traceId": "abc123xyz"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "服务器内部错误",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponseVoid"
+            },
+            "example": {
+              "code": 500,
+              "message": "服务器内部错误，请稍后重试",
+              "data": null,
+              "traceId": "abc123xyz"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "example": "john_doe", "minLength": 3, "maxLength": 20 },
+          "password": { "type": "string", "example": "password123", "minLength": 6, "maxLength": 32 },
+          "email": { "type": "string", "example": "john@example.com", "format": "email" }
+        },
+        "required": ["username", "password"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "example": "john_doe" },
+          "password": { "type": "string", "example": "password123" }
+        },
+        "required": ["username", "password"]
+      },
+      "UserInfo": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "username": { "type": "string", "example": "john_doe" },
+          "email": { "type": "string", "example": "john@example.com" },
+          "role": { "type": "string", "example": "USER", "enum": ["USER", "ADMIN"] }
+        },
+        "required": ["id", "username", "role"]
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "integer", "example": 1 },
+          "username": { "type": "string", "example": "john_doe" },
+          "email": { "type": "string", "example": "john@example.com" },
+          "role": { "type": "string", "example": "USER" }
+        },
+        "required": ["userId", "username", "role"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "example": "eyJhbGciOiJIUzUxMiJ9..." },
+          "user": { "$ref": "#/components/schemas/UserInfo" }
+        },
+        "required": ["token", "user"]
+      },
+      "CreateWordRequest": {
+        "type": "object",
+        "properties": {
+          "word": { "type": "string", "example": "ephemeral", "maxLength": 100 },
+          "phonetic": { "type": "string", "example": "/ɪˈfemərəl/", "maxLength": 100 },
+          "pos": { "type": "string", "example": "adj.", "maxLength": 50 },
+          "meaning": { "type": "string", "example": "短暂的，瞬息的", "maxLength": 500 },
+          "example": { "type": "string", "example": "The ephemeral beauty of cherry blossoms.", "maxLength": 1000 },
+          "memoryTip": { "type": "string", "example": "e(出)+phem(出现)+eral", "maxLength": 500 }
+        },
+        "required": ["word", "meaning"]
+      },
+      "UpdateWordRequest": {
+        "type": "object",
+        "properties": {
+          "word": { "type": "string", "example": "ephemeral", "maxLength": 100 },
+          "phonetic": { "type": "string", "example": "/ɪˈfemərəl/", "maxLength": 100 },
+          "pos": { "type": "string", "example": "adj.", "maxLength": 50 },
+          "meaning": { "type": "string", "example": "短暂的，瞬息的", "maxLength": 500 },
+          "example": { "type": "string", "example": "The ephemeral beauty of cherry blossoms.", "maxLength": 1000 },
+          "memoryTip": { "type": "string", "example": "e(出)+phem(出现)+eral", "maxLength": 500 }
+        }
+      },
+      "WordResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "word": { "type": "string", "example": "ephemeral" },
+          "phonetic": { "type": "string", "example": "/ɪˈfemərəl/" },
+          "pos": { "type": "string", "example": "adj." },
+          "meaning": { "type": "string", "example": "短暂的，瞬息的" },
+          "example": { "type": "string", "example": "The ephemeral beauty of cherry blossoms." },
+          "memoryTip": { "type": "string", "example": "e(出)+phem(出现)+eral" },
+          "createdAt": { "type": "string", "example": "2024-01-15T10:30:00", "format": "date-time" }
+        },
+        "required": ["id", "word", "meaning"]
+      },
+      "WordListResponse": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WordResponse" }
+          },
+          "total": { "type": "integer", "example": 100 },
+          "page": { "type": "integer", "example": 1 },
+          "size": { "type": "integer", "example": 20 }
+        },
+        "required": ["list", "total", "page", "size"]
+      },
+      "WordNode": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "word": { "type": "string", "example": "ephemeral" },
+          "meaning": { "type": "string", "example": "短暂的，瞬息的" },
+          "category": { "type": "string", "example": "center" },
+          "depth": { "type": "integer", "example": 0 }
+        },
+        "required": ["id", "word", "meaning", "depth"]
+      },
+      "RelationEdge": {
+        "type": "object",
+        "properties": {
+          "source": { "type": "integer", "example": 1 },
+          "target": { "type": "integer", "example": 2 },
+          "relationType": { "type": "string", "example": "synonym", "enum": ["synonym", "antonym", "hyponym", "hypernym", "derivative", "collocation"] },
+          "label": { "type": "string", "example": "同义词" }
+        },
+        "required": ["source", "target", "relationType"]
+      },
+      "RelationRequest": {
+        "type": "object",
+        "properties": {
+          "sourceWordId": { "type": "integer", "example": 1 },
+          "targetWordId": { "type": "integer", "example": 2 },
+          "relationType": { "type": "string", "example": "synonym" }
+        },
+        "required": ["sourceWordId", "targetWordId", "relationType"]
+      },
+      "MindMapResponse": {
+        "type": "object",
+        "properties": {
+          "centerWord": { "$ref": "#/components/schemas/WordNode" },
+          "nodes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WordNode" }
+          },
+          "edges": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RelationEdge" }
+          }
+        },
+        "required": ["centerWord", "nodes", "edges"]
+      },
+      "SubmitReviewRequest": {
+        "type": "object",
+        "properties": {
+          "wordId": { "type": "integer", "example": 1 },
+          "result": { "type": "string", "example": "known", "enum": ["known", "vague", "unknown"] }
+        },
+        "required": ["wordId", "result"]
+      },
+      "ReviewResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "wordId": { "type": "integer", "example": 1 },
+          "word": { "type": "string", "example": "ephemeral" },
+          "meaning": { "type": "string", "example": "短暂的，瞬息的" },
+          "result": { "type": "string", "example": "known" },
+          "proficiency": { "type": "integer", "example": 3 },
+          "nextReviewAt": { "type": "string", "example": "2024-01-22T10:30:00", "format": "date-time" },
+          "createdAt": { "type": "string", "example": "2024-01-15T10:30:00", "format": "date-time" }
+        },
+        "required": ["id", "wordId", "word", "meaning", "result", "proficiency"]
+      },
+      "TodayResponse": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReviewResponse" }
+          },
+          "total": { "type": "integer", "example": 20 }
+        },
+        "required": ["list", "total"]
+      },
+      "Question": {
+        "type": "object",
+        "properties": {
+          "wordId": { "type": "integer", "example": 1 },
+          "word": { "type": "string", "example": "ephemeral" },
+          "type": { "type": "string", "example": "meaning", "enum": ["meaning", "word"] },
+          "question": { "type": "string", "example": "\"ephemeral\" 的中文释义是？" },
+          "options": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["短暂的，瞬息的", "永恒的", "重要的", "困难的"]
+          },
+          "correctAnswer": { "type": "string", "example": "短暂的，瞬息的" }
+        },
+        "required": ["wordId", "word", "type", "question", "options", "correctAnswer"]
+      },
+      "Answer": {
+        "type": "object",
+        "properties": {
+          "wordId": { "type": "integer", "example": 1 },
+          "answer": { "type": "string", "example": "短暂的，瞬息的" }
+        },
+        "required": ["wordId", "answer"]
+      },
+      "StartResponse": {
+        "type": "object",
+        "properties": {
+          "quizId": { "type": "string", "example": "quiz-abc123xyz" },
+          "questions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Question" }
+          }
+        },
+        "required": ["quizId", "questions"]
+      },
+      "SubmitQuizRequest": {
+        "type": "object",
+        "properties": {
+          "quizId": { "type": "string", "example": "quiz-abc123xyz" },
+          "answers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Answer" }
+          }
+        },
+        "required": ["quizId", "answers"]
+      },
+      "SubmitResponse": {
+        "type": "object",
+        "properties": {
+          "score": { "type": "integer", "example": 80 },
+          "correctCount": { "type": "integer", "example": 8 },
+          "totalCount": { "type": "integer", "example": 10 },
+          "duration": { "type": "integer", "example": 120000 },
+          "wrongWords": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WordResponse" }
+          }
+        },
+        "required": ["score", "correctCount", "totalCount", "duration", "wrongWords"]
+      },
+      "StatsResponse": {
+        "type": "object",
+        "properties": {
+          "totalWords": { "type": "integer", "example": 150 },
+          "todayReviewCount": { "type": "integer", "example": 15 },
+          "accuracy": { "type": "number", "example": 0.85, "format": "double" },
+          "streakDays": { "type": "integer", "example": 7 }
+        },
+        "required": ["totalWords", "todayReviewCount", "accuracy", "streakDays"]
+      },
+      "CreateStudyPlanRequest": {
+        "type": "object",
+        "properties": {
+          "wordId": { "type": "integer", "example": 1 },
+          "planType": { "type": "string", "example": "vocabulary", "enum": ["vocabulary", "review", "exam"] }
+        },
+        "required": ["wordId", "planType"]
+      },
+      "StudyPlanResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "wordId": { "type": "integer", "example": 1 },
+          "word": { "type": "string", "example": "ephemeral" },
+          "meaning": { "type": "string", "example": "短暂的，瞬息的" },
+          "planType": { "type": "string", "example": "vocabulary" },
+          "createdAt": { "type": "string", "example": "2024-01-15T10:30:00" }
+        },
+        "required": ["id", "wordId", "word", "meaning", "planType", "createdAt"]
+      },
+      "ImportResult": {
+        "type": "object",
+        "properties": {
+          "importedCount": { "type": "integer", "example": 45 },
+          "failedRows": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["invalid,word,行 - 格式错误"]
+          }
+        },
+        "required": ["importedCount", "failedRows"]
+      },
+      "ApiResponseVoid": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "integer", "example": 0 },
+          "message": { "type": "string", "example": "ok" },
+          "data": { "type": "object", "nullable": true },
+          "traceId": { "type": "string", "example": "abc123xyz" }
+        },
+        "required": ["code", "message"]
+      },
+      "ApiResponseRegisterResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/RegisterResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseLoginResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/LoginResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseUserInfo": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/UserInfo" }
+            }
+          }
+        ]
+      },
+      "ApiResponseWordListResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/WordListResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseWordResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/WordResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseMindMapResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/MindMapResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseReviewResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/ReviewResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseTodayResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/TodayResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseStartResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/StartResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseSubmitResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/SubmitResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseStatsResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/StatsResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseStudyPlanResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/StudyPlanResponse" }
+            }
+          }
+        ]
+      },
+      "ApiResponseListStudyPlanResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/StudyPlanResponse" }
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseImportResult": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/ImportResult" }
+            }
+          }
+        ]
+      },
+      "ApiResponseRelationEdge": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/RelationEdge" }
+            }
+          }
+        ]
+      },
+      "ApiResponseMapStringObject": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiResponseVoid" },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "additionalProperties": { "type": "object" },
+                "example": {
+                  "status": "UP",
+                  "timestamp": "2024-01-15T10:30:00",
+                  "service": "wordmind-backend"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

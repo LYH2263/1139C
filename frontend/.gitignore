@@ -29,3 +29,12 @@ Thumbs.db
 # Cache
 .cache
 *.tsbuildinfo
+
+# API spec baseline
+openapi-prev.json
+
+# Auto-generated types - can be regenerated
+src/types/api.d.ts
+
+# MSW Service Worker
+public/mockServiceWorker.js

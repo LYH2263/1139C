@@ -40,3 +40,18 @@ logging:
   level:
     com.wordmind: DEBUG
     org.springframework.security: DEBUG
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    doc-expansion: list
+    default-models-expand-depth: 10
+  show-actuator: false
+  packages-to-scan: com.wordmind.controller
+  paths-to-match: /api/**
