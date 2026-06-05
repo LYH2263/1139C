@@ -1,17 +1,24 @@
 package com.wordmind.service;
 
+import com.wordmind.algorithm.ReviewAlgorithm;
+import com.wordmind.algorithm.ReviewContext;
 import com.wordmind.dto.ReviewDTO;
 import com.wordmind.entity.ReviewRecord;
 import com.wordmind.entity.Word;
+import com.wordmind.exception.BusinessException;
+import com.wordmind.exception.ErrorCode;
 import com.wordmind.repository.ReviewRecordRepository;
 import com.wordmind.repository.WordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,11 +30,35 @@ public class ReviewService {
     @Autowired
     private WordRepository wordRepository;
     
+    @Autowired
+    private ReviewAlgorithm reviewAlgorithm;
+    
+    @Autowired
+    private Clock clock;
+    
+    @Transactional(readOnly = true)
     public ReviewDTO.TodayResponse getTodayReviews(Long userId) {
-        List<ReviewRecord> records = reviewRecordRepository.findTodayReviews(userId, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now(clock);
+        List<ReviewRecord> records = reviewRecordRepository.findTodayReviews(userId, now);
+        
+        if (records.isEmpty()) {
+            return ReviewDTO.TodayResponse.builder()
+                    .list(List.of())
+                    .total(0L)
+                    .build();
+        }
+        
+        List<Long> wordIds = records.stream()
+                .map(ReviewRecord::getWordId)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        List<Word> words = wordRepository.findByIdIn(wordIds);
+        Map<Long, Word> wordMap = words.stream()
+                .collect(Collectors.toMap(Word::getId, Function.identity()));
         
         List<ReviewDTO.Response> list = records.stream()
-                .map(this::convertToDTO)
+                .map(record -> convertToDTO(record, wordMap))
                 .collect(Collectors.toList());
         
         return ReviewDTO.TodayResponse.builder()
@@ -38,57 +69,60 @@ public class ReviewService {
     
     @Transactional
     public ReviewDTO.Response submitReview(Long userId, ReviewDTO.SubmitRequest request) {
-        Word word = wordRepository.findById(request.getWordId())
-                .orElseThrow(() -> new RuntimeException("单词不存在"));
+        Word word = findWordById(request.getWordId());
         
-        ReviewRecord.ReviewResult result = ReviewRecord.ReviewResult.valueOf(request.getResult());
+        ReviewRecord.ReviewResult result = parseReviewResult(request.getResult());
         
         Optional<ReviewRecord> existing = reviewRecordRepository.findByUserIdAndWordId(userId, request.getWordId());
         
         ReviewRecord record;
         if (existing.isPresent()) {
             record = existing.get();
-            record.setResult(result);
-            record.setProficiency(calculateProficiency(record.getProficiency(), result));
         } else {
             record = new ReviewRecord();
             record.setUserId(userId);
             record.setWordId(request.getWordId());
-            record.setResult(result);
-            record.setProficiency(calculateProficiency(0, result));
         }
         
-        record.setNextReviewAt(calculateNextReviewTime(record.getProficiency()));
+        record.setResult(result);
+        
+        ReviewContext context = ReviewContext.builder()
+                .record(record)
+                .result(result)
+                .now(LocalDateTime.now(clock))
+                .build();
+        
+        reviewAlgorithm.calculate(context);
+        
         ReviewRecord saved = reviewRecordRepository.save(record);
         
-        return convertToDTO(saved);
+        return convertToDTO(saved, word);
     }
     
-    private int calculateProficiency(int current, ReviewRecord.ReviewResult result) {
-        switch (result) {
-            case KNOWN: return Math.min(current + 1, 5);
-            case VAGUE: return Math.max(current - 1, 0);
-            case UNKNOWN: return 0;
-            default: return current;
+    @Transactional(readOnly = true)
+    public Word findWordById(Long wordId) {
+        return wordRepository.findById(wordId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.WORD_NOT_FOUND, wordId));
+    }
+    
+    private ReviewRecord.ReviewResult parseReviewResult(String result) {
+        try {
+            return ReviewRecord.ReviewResult.valueOf(result);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.REVIEW_RESULT_INVALID, result);
         }
     }
     
-    private LocalDateTime calculateNextReviewTime(int proficiency) {
-        LocalDateTime now = LocalDateTime.now();
-        switch (proficiency) {
-            case 0: return now.plusMinutes(5);
-            case 1: return now.plusHours(1);
-            case 2: return now.plusDays(1);
-            case 3: return now.plusDays(3);
-            case 4: return now.plusDays(7);
-            case 5: return now.plusDays(30);
-            default: return now.plusDays(1);
-        }
+    private ReviewDTO.Response convertToDTO(ReviewRecord record, Map<Long, Word> wordMap) {
+        Word word = wordMap.get(record.getWordId());
+        return buildResponse(record, word);
     }
     
-    private ReviewDTO.Response convertToDTO(ReviewRecord record) {
-        Word word = wordRepository.findById(record.getWordId()).orElse(null);
-        
+    private ReviewDTO.Response convertToDTO(ReviewRecord record, Word word) {
+        return buildResponse(record, word);
+    }
+    
+    private ReviewDTO.Response buildResponse(ReviewRecord record, Word word) {
         return ReviewDTO.Response.builder()
                 .id(record.getId())
                 .wordId(record.getWordId())

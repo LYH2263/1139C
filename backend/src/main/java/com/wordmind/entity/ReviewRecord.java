@@ -4,6 +4,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,6 +30,15 @@ public class ReviewRecord {
     
     @Column(name = "next_review_at")
     private LocalDateTime nextReviewAt;
+    
+    @Column(precision = 5, scale = 2)
+    private BigDecimal ef = new BigDecimal("2.5");
+    
+    @Column(nullable = false)
+    private Integer repetitions = 0;
+    
+    @Column(name = "interval_days")
+    private Integer intervalDays = 0;
     
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

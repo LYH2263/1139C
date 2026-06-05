@@ -33,6 +33,9 @@ jwt:
   secret: ${JWT_SECRET:this-is-a-very-long-secret-key-for-wordmind-jwt-token-generation-must-be-at-least-512-bits-long-for-hs512}
   expiration: ${JWT_EXPIRATION:86400000}
 
+review:
+  algorithm: ${REVIEW_ALGORITHM:SM2}
+
 logging:
   level:
     com.wordmind: DEBUG

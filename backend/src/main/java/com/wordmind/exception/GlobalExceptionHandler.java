@@ -2,6 +2,8 @@ package com.wordmind.exception;
 
 import com.wordmind.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,12 +15,38 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+    
+    private final MessageSource messageSource;
+    
+    public GlobalExceptionHandler(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
+    
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleBusinessException(BusinessException ex) {
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getErrorCode().getMessageKey(),
+                ex.getArgs(),
+                ex.getErrorCode().getMessageKey(),
+                locale
+        );
+        
+        return ApiResponse.<Void>builder()
+                .code(ex.getErrorCode().getCode())
+                .message(message)
+                .data(null)
+                .traceId(generateTraceId())
+                .build();
+    }
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
