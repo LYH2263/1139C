@@ -8,7 +8,7 @@ export const handlers = [
 
     const authHeader = request.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return HttpResponse.json(apiError(401, '未授权访问'), { status: 401 }
+      return HttpResponse.json(apiError(401, '未授权访问'), { status: 401 })
     }
 
     const wordId = parseInt(params[0] as string, 10)

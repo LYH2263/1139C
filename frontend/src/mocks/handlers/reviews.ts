@@ -8,7 +8,7 @@ export const handlers = [
 
     const authHeader = request.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return HttpResponse.json(apiError(401, '未授权访问'), { status: 401 }
+      return HttpResponse.json(apiError(401, '未授权访问'), { status: 401 })
     }
 
     const total = faker.number.int({ min: 5, max: 30 })
