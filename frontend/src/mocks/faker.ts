@@ -53,7 +53,6 @@ export interface MockMindMapEdge {
   label: string
 }
 
-const posList = ['n.', 'v.', 'adj.', 'adv.', 'prep.', 'conj.', 'int.']
 const relationTypes = ['synonym', 'antonym', 'hyponym', 'hypernym', 'derivative', 'collocation']
 const relationLabels = ['同义词', '反义词', '下义词', '上义词', '派生词', '搭配']
 
@@ -149,7 +148,7 @@ export function generateWordList(count: number): MockWord[] {
 export function generateUser(override?: Partial<MockUser>): MockUser {
   return {
     id: faker.number.int({ min: 1, max: 1000 }),
-    username: faker.internet.username(),
+    username: faker.internet.userName(),
     email: faker.helpers.maybe(() => faker.internet.email()),
     role: faker.helpers.arrayElement(['USER', 'ADMIN']),
     ...override,

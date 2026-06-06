@@ -17,14 +17,14 @@
     "api:save": "cp openapi.json openapi-prev.json 2>/dev/null || echo 'No previous spec found'"
   },
   "dependencies": {
-    "vue": "^3.4.15",
-    "vue-router": "^4.2.5",
-    "pinia": "^2.1.7",
-    "axios": "^1.6.5",
-    "element-plus": "^2.5.1",
     "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.6.5",
     "echarts": "^5.4.3",
-    "vue-echarts": "^6.6.1"
+    "element-plus": "^2.5.1",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.15",
+    "vue-echarts": "^6.6.1",
+    "vue-router": "^4.2.5"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.0",
@@ -37,7 +37,8 @@
     "openapi-typescript": "^6.7.4",
     "typescript": "^5.3.3",
     "vite": "^5.0.11",
-    "vitest": "^1.2.0"
+    "vitest": "^1.2.0",
+    "vue-tsc": "^1.8.27"
   },
   "msw": {
     "workerDirectory": "public"
